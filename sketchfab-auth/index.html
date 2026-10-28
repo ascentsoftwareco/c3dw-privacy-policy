@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Returning to Custom 3D Wallpaper</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px;
+         box-sizing: border-box; background: #07081a; color: #e8e8f0;
+         font: 16px/1.5 system-ui, -apple-system, Roboto, sans-serif; text-align: center; }
+  a.button { display: inline-block; margin-top: 16px; padding: 12px 24px; border-radius: 24px;
+             background: #7c8cff; color: #07081a; font-weight: 600; text-decoration: none; }
+  p.small { opacity: .6; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <p id="msg">Returning to Custom 3D Wallpaper…</p>
+  <a id="open" class="button" href="#" hidden>Open the app</a>
+  <p class="small">You can close this tab once the app opens.</p>
+</main>
+<script>
+  // Sketchfab OAuth redirect target. Sketchfab only redirects to http(s) URIs, so this
+  // static page forwards the implicit-grant result (in the URL fragment, which never
+  // reaches a server) into the app's c3dw-auth://sketchfab deep link. The intent: URL is
+  // pinned to the app's package so no other app can intercept the token.
+  (function () {
+    var params = new URLSearchParams(location.hash.slice(1));
+    new URLSearchParams(location.search).forEach(function (v, k) { if (!params.has(k)) params.set(k, v); });
+    var keep = new URLSearchParams();
+    ["access_token", "expires_in", "state", "error"].forEach(function (k) {
+      if (params.has(k)) keep.set(k, params.get(k));
+    });
+    // Drop the token from the address bar / history right away.
+    history.replaceState(null, "", location.pathname);
+
+    if (!keep.has("access_token") && !keep.has("error")) {
+      document.getElementById("msg").textContent = "Nothing to do here — head back to the app.";
+      return;
+    }
+    var target = "intent://sketchfab?" + keep.toString() +
+      "#Intent;scheme=c3dw-auth;package=com.ascentsoftware.custom3dwallpaper;end";
+    var link = document.getElementById("open");
+    link.href = target;
+    link.hidden = false;
+    location.replace(target);
+  })();
+</script>
+</body>
+</html>
